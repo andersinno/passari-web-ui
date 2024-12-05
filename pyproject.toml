@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64", "wheel", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "passari-web-ui"
+dynamic = ["version"]
+description = "Web interface for Passari workflow"
+readme = "README.md"
+authors = [{name="Janne Pulkkinen", email="janne.pulkkinen@museovirasto.fi"}]
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "License :: OSI Approved :: MIT License",
+    "Framework :: Flask",
+]
+requires-python = ">=3.6"
+dependencies = [
+    "passari-workflow",
+    "Flask",
+    "Flask-Security-Too",
+    "click>=7",
+    "SQLAlchemy",
+    "psycopg2",
+    "rq>=1",
+    "rq-dashboard>=0.6",
+    "toml",
+    "bcrypt",
+    "Flask-SQLAlchemy",
+    "Flask-WTF",
+    "flask-talisman",
+    "arrow",
+]
+
+[project.optional-dependencies]
+docs = ["sphinxcontrib-apidoc"]
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0"

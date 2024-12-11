@@ -1,3 +1,5 @@
+import logging
+
 from flask import Flask, current_app, g, redirect, request, url_for
 from flask_security import (Security, SQLAlchemySessionUserDatastore,
                             current_user)
@@ -64,6 +66,19 @@ def init_security():
     Security(current_app, user_datastore)
 
 
+def configure_custom_log_levels(log_levels):
+    if log_levels:
+        if isinstance(log_levels, str):
+            log_levels = log_levels.replace(",", " ").split()
+
+        if isinstance(log_levels, list):
+            log_levels = dict(x.split(":", 1) for x in log_levels)
+
+        for logger_name, level_name in (log_levels or {}).items():
+            logger = logging.getLogger(logger_name)
+            logger.setLevel(level_name)
+
+
 def create_app():
     """
     Create the WSGI app for passari-web-ui
@@ -74,6 +89,8 @@ def create_app():
     app.config.update(**get_flask_config())
     app.config["SQLALCHEMY_DATABASE_URI"] = get_connection_uri()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    configure_custom_log_levels(app.config.get("CUSTOM_LOG_LEVELS"))
 
     db.init_app(app)
 

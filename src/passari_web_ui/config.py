@@ -17,6 +17,9 @@ SECURITY_SEND_PASSWORD_CHANGE_EMAIL=false
 SECURITY_SEND_PASSWORD_RESET_EMAIL=false
 SECURITY_SEND_PASSWORD_RESET_NOTICE_EMAIL=false
 
+# Logging configuration
+# CUSTOM_LOG_LEVELS='passlib:INFO'
+
 # URL to the MuseumPlus web UI. This is the base URL.
 # For example, the following URL should be valid:
 # {MUSEUMPLUS_UI_URL}/Object/1522

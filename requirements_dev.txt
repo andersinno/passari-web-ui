@@ -1,5 +1,5 @@
-pytest
-pytest-cov
-pytest-postgresql
-fakeredis
-lupa
+pytest~=8.3.4
+pytest-cov~=6.0.0
+pytest-postgresql~=6.1.1
+fakeredis~=2.26.1
+lupa~=2.2

@@ -103,6 +103,7 @@ def engine(database, monkeypatch):
     """
     Fixture for creating an empty database on each test run
     """
+    monkeypatch.setitem(WORKFLOW_CONFIG["db"], "url", "")
     monkeypatch.setitem(WORKFLOW_CONFIG["db"], "user", database.user)
     monkeypatch.setitem(
         WORKFLOW_CONFIG["db"], "password",

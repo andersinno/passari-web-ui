@@ -7,6 +7,13 @@ from passari_web_ui.db import db
 from passari_web_ui.ui.utils import get_available_object_count
 from passari_workflow.db.models import MuseumObject
 
+from .validators import (
+    object_ids_exist_check,
+    object_with_reason_exist_check,
+    object_ids_not_processed_before_check,
+    object_ids_pending_preservation_check
+)
+
 
 class EnqueueObjectsForm(FlaskForm):
     """
@@ -68,29 +75,6 @@ class MultipleObjectIDField(Field):
             self.data = []
 
 
-def object_ids_exist_check(form, field):
-    """
-    Check that all given object IDs exist
-    """
-    if not field.data:
-        raise ValidationError("No object ID was provided")
-
-    existing_object_ids = [
-        result[0] for result in
-        db.session.query(MuseumObject.id)
-        .filter(MuseumObject.id.in_(field.data))
-        .all()
-    ]
-
-    missing_object_ids = set(field.data) - set(existing_object_ids)
-
-    if missing_object_ids:
-        raise ValidationError(
-            f"Following objects don't exist: "
-            f"{', '.join([str(o) for o in sorted(missing_object_ids)])}"
-        )
-
-
 class FreezeObjectsForm(FlaskForm):
     """
     Form for freezing multiple objects with a single reason
@@ -108,19 +92,16 @@ class FreezeObjectsForm(FlaskForm):
     )
 
 
-def object_with_reason_exist_check(form, field):
+class EnqueueObjectsByIdsForm(FlaskForm):
     """
-    Check that at least one frozen object with the given reason exists
+    Form to enqueue objects by their IDs
     """
-    result = (
-        db.session.query(MuseumObject)
-        .filter(MuseumObject.frozen)
-        .filter(MuseumObject.freeze_reason == field.data)
-        .first()
+    object_ids = MultipleObjectIDField(
+        "Object IDs", validators=[
+            object_ids_pending_preservation_check,
+            object_ids_not_processed_before_check
+        ]
     )
-
-    if not result:
-        raise ValidationError("No objects with this reason were found.")
 
 
 class UnfreezeObjectsForm(FlaskForm):

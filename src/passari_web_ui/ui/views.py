@@ -3,8 +3,9 @@ from flask import (Blueprint, flash, redirect, render_template, request,
 from sqlalchemy import func
 
 from passari_web_ui.db import db
-from passari_web_ui.ui.forms import (EnqueueObjectsForm, FreezeObjectsForm,
-                                     ReenqueueObjectForm, UnfreezeObjectsForm)
+from passari_web_ui.ui.forms import (EnqueueObjectsForm, EnqueueObjectsByIdsForm,
+                                     FreezeObjectsForm, ReenqueueObjectForm,
+                                     UnfreezeObjectsForm)
 from passari_web_ui.ui.utils import get_available_object_count
 from passari_workflow.db.models import (FreezeSource, MuseumObject,
                                         MuseumPackage)
@@ -112,10 +113,22 @@ def enqueue_objects():
     """
     available_count = get_available_object_count()
 
-    form = EnqueueObjectsForm()
+    form1 = EnqueueObjectsForm()
+    form2 = EnqueueObjectsByIdsForm()
 
-    if form.validate_on_submit():
-        enqueued_count = do_deferred_enqueue_objects(form.object_count.data)
+    submitted_form = request.form.get("submit_form")
+
+    if submitted_form == "form1" and form1.validate_on_submit():
+        enqueued_count = do_deferred_enqueue_objects(form1.object_count.data)
+        flash(f"{enqueued_count} object(s) will be enqueued.", category="enqueue_objects")
+        return redirect(url_for("ui.enqueue_objects_success"))
+
+    elif submitted_form == "form2" and form2.validate_on_submit():
+        object_ids = [object_id for object_id in form2.object_ids.data]
+        enqueued_count = do_deferred_enqueue_objects(
+            object_count=None,
+            object_ids=object_ids
+        )
         flash(
             f"{enqueued_count} object(s) will be enqueued.",
             category="enqueue_objects"
@@ -125,7 +138,8 @@ def enqueue_objects():
     return render_template(
         "tabs/enqueue_objects/enqueue_objects.html",
         available_count=available_count,
-        form=form
+        form=form1,
+        form2=form2
     )
 
 

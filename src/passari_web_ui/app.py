@@ -12,8 +12,8 @@ from passari_web_ui.config import get_flask_config
 from passari_web_ui.db import db
 from passari_web_ui.db.models import Role, User
 from passari_web_ui.ui.utils import get_system_status
-from passari_workflow.config import CONFIG as WORKFLOW_CONFIG
 from passari_workflow.db.connection import get_connection_uri
+from passari_workflow.redis.connection import get_redis_url
 
 
 def add_system_status():
@@ -37,16 +37,10 @@ def register_rq_dashboard(app):
     """
     Install RQ dashboard into the web application
     """
-    redis_host = WORKFLOW_CONFIG["redis"]["host"]
-    redis_port = WORKFLOW_CONFIG["redis"]["port"]
-    redis_password = WORKFLOW_CONFIG["redis"]["password"]
+    redis_url = get_redis_url()
 
     app.config.from_object(rq_dashboard.default_settings)
-    app.config.from_mapping({
-        "RQ_DASHBOARD_REDIS_URL": [
-            f"redis://:{redis_password}@{redis_host}:{redis_port}"
-        ]
-    })
+    app.config.from_mapping({"RQ_DASHBOARD_REDIS_URL": [redis_url]})
 
     # We can't decorate rq_dashboard routes with the 'login_required'
     # decorator, so use a 'before_request' function, which does essentially

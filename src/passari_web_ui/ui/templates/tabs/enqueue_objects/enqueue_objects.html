@@ -17,6 +17,47 @@
                 max=available_count
             )
         }}
-        <button class="btn btn-primary" type="submit">Enqueue</button>
+        <button class="btn btn-primary" type="submit" name="submit_form" value="form1">
+            Enqueue
+        </button>
     </form>
+
+    <hr />
+
+    <div class="alert alert-secondary">
+        Enqueue new objects to the preservation workflow by providing their MuseumPlus IDs. Given objects are enqueued into the workflow.
+    </div>
+    <form method="POST" action="{{ url_for('ui.enqueue_objects') }}" autocomplete="off">
+        {{ form2.csrf_token }}
+        <div class="row">
+            <div class="col-8">
+                {{
+                    macros.render_field(
+                        form2.object_ids,
+                        placeholder="Insert each object ID into its own line",
+                        rows=10
+                    )
+                }}
+            </div>
+            <div class="col-4">
+                <label>Upload CSV File</label>
+                <input type="file" class="form-control" id="csv_file" accept=".csv"
+                    style="border:none; padding:0;">
+                <small class="form-text text-muted">
+                    Upload a CSV file to populate the object IDs (one ID per line).
+                </small>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endif %}
+        <button class="btn btn-primary" type="submit" name="submit_form" value="form2">
+            Enqueue
+        </button>
+    </form>
+
+    <script src="{{ url_for('static', filename='js/upload_csv.js') }}"></script>
 {% endblock content %}

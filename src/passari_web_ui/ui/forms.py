@@ -9,7 +9,9 @@ from passari_workflow.db.models import MuseumObject
 
 from .validators import (
     object_ids_exist_check,
-    object_with_reason_exist_check
+    object_with_reason_exist_check,
+    object_ids_not_processed_before_check,
+    object_ids_pending_preservation_check
 )
 
 
@@ -87,6 +89,18 @@ class FreezeObjectsForm(FlaskForm):
             "one query."
         ),
         validators=[InputRequired()]
+    )
+
+
+class EnqueueObjectsByIdsForm(FlaskForm):
+    """
+    Form to enqueue objects by their IDs
+    """
+    object_ids = MultipleObjectIDField(
+        "Object IDs", validators=[
+            object_ids_pending_preservation_check,
+            object_ids_not_processed_before_check
+        ]
     )
 
 

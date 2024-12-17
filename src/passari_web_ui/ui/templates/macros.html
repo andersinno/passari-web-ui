@@ -48,6 +48,7 @@
                 <textarea class="{{ form_class }}"
                           id="{{ field.id }}"
                           name="{{ field.name }}"
+                          rows="{{ kwargs.get('rows', 5) }}"
                           placeholder="{{ kwargs.get("placeholder", "") }}">
                     {%- if field.data is not none %}{{ field.data }}{% endif -%}
                 </textarea>

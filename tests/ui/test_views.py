@@ -107,7 +107,11 @@ class TestEnqueueObjects:
         assert b"<b>5</b> are available" in result.data
 
         result = client.post(
-            "/web-ui/enqueue-objects/", data={"object_count": "2"},
+            "/web-ui/enqueue-objects/",
+            data={
+                "object_count": "2",
+                "submit_form": "form1"
+            },
             follow_redirects=True
         )
         assert b"2 object(s) will be enqueued." in result.data
@@ -117,7 +121,11 @@ class TestEnqueueObjects:
         Test enqueueing two new objects when no objects are available
         """
         result = client.post(
-            "/web-ui/enqueue-objects/", data={"object_count": "2"}
+            "/web-ui/enqueue-objects/",
+            data={
+                "object_count": "2",
+                "submit_form": "form1"
+            }
         )
         assert b"There are no objects pending preservation" in result.data
 
@@ -134,9 +142,38 @@ class TestEnqueueObjects:
             )
 
         result = client.post(
-            "/web-ui/enqueue-objects/", data={"object_count": "-1"}
+            "/web-ui/enqueue-objects/",
+            data={
+                "object_count": "-1",
+                "submit_form": "form1"
+            }
         )
         assert b"Object count has to be in range 1 - 5" in result.data
+
+    def test_enqueue_objects_by_ids(self, session, client, museum_object_factory):
+        """
+        Test enqueueing three new objects by their IDs
+        """
+        for i in range(0, 5):
+            # Create five fake preservable objects
+            museum_object_factory(
+                id=i, created_date=TEST_DATE, modified_date=TEST_DATE,
+                metadata_hash="", attachment_metadata_hash=""
+            )
+
+        result = client.get("/web-ui/enqueue-objects/")
+        assert b"Enqueue objects</h1>" in result.data
+        assert b"<b>5</b> are available" in result.data
+
+        result = client.post(
+            "/web-ui/enqueue-objects/",
+            data={
+                "object_ids": "1\n2\n3", # Newline-separated IDs as a string
+                "submit_form": "form2"
+            },
+            follow_redirects=True
+        )
+        assert b"3 object(s) will be enqueued." in result.data
 
 
 @pytest.mark.usefixtures("user")

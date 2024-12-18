@@ -1,21 +1,20 @@
 import datetime
-import os
-import subprocess
-
-from flask_security import SQLAlchemySessionUserDatastore, hash_password
-from sqlalchemy import create_engine
+import re
 
 import fakeredis
 import pytest
+from flask_security import SQLAlchemySessionUserDatastore, hash_password
+from sqlalchemy import create_engine
+from sqlalchemy_utils import create_database, database_exists, drop_database
+
 from passari_web_ui.app import create_app
 from passari_web_ui.db import db
 from passari_web_ui.db.models import Base as AuthBase
 from passari_web_ui.db.models import Role, User
 from passari_workflow.config import CONFIG as WORKFLOW_CONFIG
 from passari_workflow.db import DBSession
-from passari_workflow.db.connection import connect_db
+from passari_workflow.db.connection import connect_db, get_connection_uri
 from passari_workflow.db.models import Base, MuseumObject, MuseumPackage
-from pytest_postgresql.janitor import DatabaseJanitor
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -48,54 +47,13 @@ def database(request):
     Fixture for starting an ephemeral database instance for the duration
     of the test suite
     """
-    def get_psql_version():
-        result = subprocess.check_output(["psql", "--version"]).decode("utf-8")
-        version = result.split(" ")[-1].strip()
-        major, minor, *_ = version.split(".")
-
-        # Get the major and minor version, which are what pytest-postgresql
-        # wants
-        return f"{major}.{minor}"
-
-    if os.environ.get("POSTGRES_USER"):
-        # Use separately launched process if environments variables are defined
-        # This is used in Gitlab CI tests which run in a Docker container
-        user = os.environ["POSTGRES_USER"]
-        host = os.environ["POSTGRES_HOST"]
-        password = os.environ["POSTGRES_PASSWORD"]
-
-        # POSTGRES_PORT can also be a value such as "tcp://1.1.1.1:5432"
-        # This handles that format as well
-        port = int(os.environ.get("POSTGRES_PORT", "5432").split(":")[-1])
-        db_name = "passari_test"
-        version = os.environ["POSTGRES_VERSION"]
-        create_engine(
-            f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
-        )
-
-        yield request.getfixturevalue("postgresql_nooproc")
-    else:
-        # Launch PostgreSQL ourselves
-        postgresql = request.getfixturevalue("postgresql_proc")
-
-        user = postgresql.user
-        host = postgresql.host
-        port = postgresql.port
-        db_name = "passari_test"
-
-        version = get_psql_version()
-
-        with DatabaseJanitor(
-            user=user,
-            host=host,
-            port=port,
-            dbname=db_name,
-            version=version
-        ):
-            create_engine(
-                f"postgresql://{user}@{host}:{port}/{db_name}"
-            )
-            yield postgresql
+    db_url = get_connection_uri(default="postgresql:///passari")
+    test_db_url = re.sub(r"^([^?]*[^/?])(/?[?]?.*)$", r"\1_test\2", db_url)
+    assert "_test" in test_db_url
+    if database_exists(test_db_url):
+        drop_database(test_db_url)
+    create_database(test_db_url)
+    yield create_engine(test_db_url)
 
 
 @pytest.fixture(scope="function")
@@ -103,16 +61,9 @@ def engine(database, monkeypatch):
     """
     Fixture for creating an empty database on each test run
     """
-    monkeypatch.setitem(WORKFLOW_CONFIG["db"], "url", "")
-    monkeypatch.setitem(WORKFLOW_CONFIG["db"], "user", database.user)
-    monkeypatch.setitem(
-        WORKFLOW_CONFIG["db"], "password",
-        # Password authentication is used when running tests using Docker
-        os.environ.get("POSTGRES_PASSWORD", "")
-    )
-    monkeypatch.setitem(WORKFLOW_CONFIG["db"], "host", database.host)
-    monkeypatch.setitem(WORKFLOW_CONFIG["db"], "port", database.port)
-    monkeypatch.setitem(WORKFLOW_CONFIG["db"], "name", "passari_test")
+    monkeypatch.setitem(WORKFLOW_CONFIG["db"], "url", database.url)
+    for item in ("user", "password", "host", "port", "name"):
+        monkeypatch.setitem(WORKFLOW_CONFIG["db"], item, "")
 
     engine = connect_db()
 

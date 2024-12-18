@@ -36,6 +36,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = [
+    "fakeredis[lua]",
+    "pytest",
+    "sqlalchemy-utils",
+]
 docs = ["sphinxcontrib-apidoc"]
 
 [tool.setuptools_scm]

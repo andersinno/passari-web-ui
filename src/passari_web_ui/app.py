@@ -1,6 +1,8 @@
 import logging
 
+import click
 from flask import Flask, current_app, g, redirect, request, url_for
+from flask.cli import FlaskGroup
 from flask_security import (Security, SQLAlchemySessionUserDatastore,
                             current_user)
 from flask_wtf.csrf import CSRFProtect
@@ -130,3 +132,15 @@ def create_app():
     )
 
     return app
+
+
+@click.group(cls=FlaskGroup, create_app=create_app)
+def cli():
+    """
+    Management script for the Passari Web application.
+    """
+    pass
+
+
+if __name__ == "__main__":
+    cli()

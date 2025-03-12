@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+ - Add "passari-web" console script
+ - Add "init-db" command
+
+## Changed
+ - Deprecate "create-db" command in favor of "init-db"
+
 ## [1.2] - 2025-03-06
 ### Added
  - Allow enqueuing objects by their ids in the Enqueue objects view

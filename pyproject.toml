@@ -43,5 +43,9 @@ dev = [
 ]
 docs = ["sphinxcontrib-apidoc"]
 
+[project.scripts]
+passari-web = "passari_web_ui.app:cli"
+
+
 [tool.setuptools_scm]
 fallback_version = "0.0.0"

@@ -1,13 +1,15 @@
 import logging
 
+import click
 from flask import Flask, current_app, g, redirect, request, url_for
+from flask.cli import FlaskGroup
 from flask_security import (Security, SQLAlchemySessionUserDatastore,
                             current_user)
 from flask_wtf.csrf import CSRFProtect
 
 import rq_dashboard
 from flask_talisman import Talisman
-from passari_web_ui.commands import create_db
+from passari_web_ui.commands import create_db, init_db
 from passari_web_ui.config import get_flask_config
 from passari_web_ui.db import db
 from passari_web_ui.db.models import Role, User
@@ -109,6 +111,7 @@ def create_app():
     app.add_url_rule("/", "index", lambda: redirect(url_for("ui.overview")))
 
     # Register CLI commands
+    app.cli.add_command(init_db)
     app.cli.add_command(create_db)
 
     # Enable global CSRF
@@ -129,3 +132,15 @@ def create_app():
     )
 
     return app
+
+
+@click.group(cls=FlaskGroup, create_app=create_app)
+def cli():
+    """
+    Management script for the Passari Web application.
+    """
+    pass
+
+
+if __name__ == "__main__":
+    cli()
